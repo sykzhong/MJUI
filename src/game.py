@@ -57,9 +57,9 @@ class mahjong_tile(pygame.sprite.Sprite):
         """增加了牌组是否垂直的判断，以让视角正确"""
         rotate = pygame.transform.rotate
         if(self.vertical == True):
-            self.image = rotate(self.tile if self.visible == True else self.hidden, angle)
+            self.image = rotate(self.tile if self.visible == True else self.hidden, angle)                  #逆时针旋转angle角度
         else:
-            self.image = rotate(self.tile if self.visible == True else self.hidden_horizontal, angle)
+            self.image = rotate(self.tile if self.visible == True else self.hidden_horizontal, angle)       ##逆时针旋转angle角度
     
     def set_visibility(self, visible=True):
         if visible:
@@ -97,7 +97,7 @@ class mahjong_board(object):
         self.generate_paishan()
 
         self.set_sprites_from_paishan()
-        self.get_paishan_gfx_position()
+        self.get_syk_paishan_gfx_pos()
         self.refresh_paishan_gfx()
         self.refresh_player_gfx(0)
         self.refresh_player_gfx(1)
@@ -121,56 +121,54 @@ class mahjong_board(object):
         for a in self.paishan:
             self.graphic_system.add_sprite(a)
 
-    def get_paishan_gfx_position(self):
-        a = self.paishan_pos[10]
+    def get_syk_paishan_gfx_pos(self):
         wdt_bnd_rto = 0.85  # Tile Width Bounding Ratio
-        """syk"""
         pos_bias_rto = 0.15
-        """syk"""
         global DISPLAY_WIDTH, DISPLAY_HEIGHT, TILE_WIDTH, TILE_HEIGHT
         """return x, y, angle, vertical flag"""
-        #syk: 牌山中上下排的牌没有对齐（下排的牌应稍微偏右），四个方向的牌山存在一定遮挡
-        #syk: 若要有合适的视角，牌山的排布必须是从左至右，从上至下。因而对于牌山的抽取，pop的牌需要有一定的规律
-        #syk: 水平放置的牌需从下而上插入add，垂直放置的牌需从左至右发放置。对于1,2位置有牌image放置与实际游戏放置顺序有所差异，需要进行位置换算
-        while True:
-            for x in range(int(DISPLAY_WIDTH / 2 - (TILE_WIDTH * wdt_bnd_rto * 16) / 2),    #player 0
-                           int(DISPLAY_WIDTH / 2 + (TILE_WIDTH * wdt_bnd_rto * 16) / 2),
-                           int(TILE_WIDTH * wdt_bnd_rto)):
-                for y in range(int(DISPLAY_HEIGHT / 2 + (TILE_WIDTH * wdt_bnd_rto * 16) / 2),
-                               int(DISPLAY_HEIGHT / 2 + (TILE_WIDTH * wdt_bnd_rto * 16) / 2 + 8), 6):
-                    if y == int(DISPLAY_HEIGHT/2 + (TILE_WIDTH*wdt_bnd_rto*16)/2):
-                        self.paishan_pos.append((x+pos_bias_rto*TILE_WIDTH, y, 0, True))
-                    else:
-                        self.paishan_pos.append((x, y, 0, True))
-            for y in range(int(DISPLAY_HEIGHT/2 + (TILE_WIDTH*wdt_bnd_rto*16)/2),           #player 1
-                           int(DISPLAY_HEIGHT/2 - (TILE_WIDTH*wdt_bnd_rto*16)/2 ),
-                           int(-TILE_WIDTH*wdt_bnd_rto)):
-                for x in range(int(DISPLAY_WIDTH / 2 + (TILE_WIDTH * wdt_bnd_rto * 17) / 2) + int(TILE_HEIGHT / 2),
-                               int(DISPLAY_WIDTH / 2 + (TILE_WIDTH * wdt_bnd_rto * 17) / 2) + int(TILE_HEIGHT / 2) - 8, -6):
-                    if x == int(DISPLAY_WIDTH / 2 + (TILE_WIDTH * wdt_bnd_rto * 17) / 2) + int(TILE_HEIGHT / 2):
-                        self.paishan_pos.append((x, y - TILE_WIDTH*pos_bias_rto, 270, False))
-                    else:
-                        self.paishan_pos.append((x, y, 270, False))
-            for x in range(int(DISPLAY_WIDTH / 2 - (TILE_WIDTH * wdt_bnd_rto * 16) / 2),    #player 2
-                           int(DISPLAY_WIDTH / 2 + (TILE_WIDTH * wdt_bnd_rto * 16) / 2),
-                           int(TILE_WIDTH * wdt_bnd_rto)):
-                for y in range(int(DISPLAY_HEIGHT / 2 - (TILE_WIDTH * wdt_bnd_rto * 16) / 2),
-                                   int(DISPLAY_HEIGHT / 2 - (TILE_WIDTH * wdt_bnd_rto * 16) / 2 + 8), 6):
-                    if y == int(DISPLAY_HEIGHT / 2 - (TILE_WIDTH * wdt_bnd_rto * 16) / 2):
-                        self.paishan_pos.append((x + pos_bias_rto*TILE_WIDTH, y, 0, True))
-                    else:
-                        self.paishan_pos.append((x, y, 0, True))
-            for y in range(int(DISPLAY_HEIGHT / 2 + (TILE_WIDTH * wdt_bnd_rto * 16) / 2),   #player 3
-                           int(DISPLAY_HEIGHT / 2 - (TILE_WIDTH * wdt_bnd_rto * 16) / 2),
-                           int(-TILE_WIDTH * wdt_bnd_rto)):
-                for x in range(int(DISPLAY_WIDTH / 2 - (TILE_WIDTH * wdt_bnd_rto * 17) / 2) - int(TILE_HEIGHT/2) - 6,
-                               int(DISPLAY_WIDTH / 2 - (TILE_WIDTH * wdt_bnd_rto * 17) / 2) - int(TILE_HEIGHT/2) - 6 - 8,
-                               -6):
-                    if x == int(DISPLAY_WIDTH / 2 - (TILE_WIDTH * wdt_bnd_rto * 17) / 2) - int(TILE_HEIGHT / 2) - 6:
-                        self.paishan_pos.append((x, y - pos_bias_rto * TILE_WIDTH, 270, False))
-                    else:
-                        self.paishan_pos.append((yield x, y, 270, False))
-                    """syk"""
+        # syk: 牌山中上下排的牌没有对齐（下排的牌应稍微偏右），四个方向的牌山存在一定遮挡
+        # syk: 若要有合适的视角，牌山的排布必须是从左至右，从上至下。因而对于牌山的抽取，pop的牌需要有一定的规律
+        # syk: 水平放置的牌需从下而上插入add，垂直放置的牌需从左至右发放置。对于1,2位置有牌image放置与实际游戏放置顺序有所差异，需要进行位置换算
+        for x in range(int(DISPLAY_WIDTH / 2 - (TILE_WIDTH * wdt_bnd_rto * 16) / 2),  # player 0
+                       int(DISPLAY_WIDTH / 2 + (TILE_WIDTH * wdt_bnd_rto * 16) / 2),
+                       int(TILE_WIDTH * wdt_bnd_rto)):
+            for y in range(int(DISPLAY_HEIGHT / 2 + (TILE_WIDTH * wdt_bnd_rto * 16) / 2),
+                           int(DISPLAY_HEIGHT / 2 + (TILE_WIDTH * wdt_bnd_rto * 16) / 2 + 8), 6):
+                if y == int(DISPLAY_HEIGHT / 2 + (TILE_WIDTH * wdt_bnd_rto * 16) / 2):
+                    self.paishan_pos.append((x + pos_bias_rto * TILE_WIDTH, y, 0, True))
+                else:
+                    self.paishan_pos.append((x, y, 0, True))
+        for y in range(int(DISPLAY_HEIGHT / 2 + (TILE_WIDTH * wdt_bnd_rto * 16) / 2),  # player 1
+                       int(DISPLAY_HEIGHT / 2 - (TILE_WIDTH * wdt_bnd_rto * 16) / 2),
+                       int(-TILE_WIDTH * wdt_bnd_rto)):
+            for x in range(int(DISPLAY_WIDTH / 2 + (TILE_WIDTH * wdt_bnd_rto * 17) / 2) + int(TILE_HEIGHT / 2),
+                           int(DISPLAY_WIDTH / 2 + (TILE_WIDTH * wdt_bnd_rto * 17) / 2) + int(TILE_HEIGHT / 2) - 8,
+                           -6):
+                if x == int(DISPLAY_WIDTH / 2 + (TILE_WIDTH * wdt_bnd_rto * 17) / 2) + int(TILE_HEIGHT / 2):
+                    self.paishan_pos.append((x, y - TILE_WIDTH * pos_bias_rto, 270, False))
+                else:
+                    self.paishan_pos.append((x, y, 270, False))
+        for x in range(int(DISPLAY_WIDTH / 2 - (TILE_WIDTH * wdt_bnd_rto * 16) / 2),  # player 2
+                       int(DISPLAY_WIDTH / 2 + (TILE_WIDTH * wdt_bnd_rto * 16) / 2),
+                       int(TILE_WIDTH * wdt_bnd_rto)):
+            for y in range(int(DISPLAY_HEIGHT / 2 - (TILE_WIDTH * wdt_bnd_rto * 16) / 2),
+                           int(DISPLAY_HEIGHT / 2 - (TILE_WIDTH * wdt_bnd_rto * 16) / 2 + 8), 6):
+                if y == int(DISPLAY_HEIGHT / 2 - (TILE_WIDTH * wdt_bnd_rto * 16) / 2):
+                    self.paishan_pos.append((x + pos_bias_rto * TILE_WIDTH, y, 0, True))
+                else:
+                    self.paishan_pos.append((x, y, 0, True))
+        for y in range(int(DISPLAY_HEIGHT / 2 + (TILE_WIDTH * wdt_bnd_rto * 16) / 2),  # player 3
+                       int(DISPLAY_HEIGHT / 2 - (TILE_WIDTH * wdt_bnd_rto * 16) / 2),
+                       int(-TILE_WIDTH * wdt_bnd_rto)):
+            for x in range(int(DISPLAY_WIDTH / 2 - (TILE_WIDTH * wdt_bnd_rto * 17) / 2) - int(TILE_HEIGHT / 2) - 7,
+                           int(DISPLAY_WIDTH / 2 - (TILE_WIDTH * wdt_bnd_rto * 17) / 2) - int(TILE_HEIGHT / 2) - 7 - 8,
+                           -6):
+                if x == int(DISPLAY_WIDTH / 2 - (TILE_WIDTH * wdt_bnd_rto * 17) / 2) - int(TILE_HEIGHT / 2) - 7:
+                    self.paishan_pos.append((x, y - pos_bias_rto * TILE_WIDTH, 270, False))
+                else:
+                    self.paishan_pos.append((x, y, 270, False))
+                """syk"""
+
 
 
     def refresh_paishan_gfx(self):        #head, tail is calc by defined by counter clockwise, means the vacancy pos
@@ -224,20 +222,25 @@ class mahjong_board(object):
             if player == 0:
                 tile.rect.x = int(DISPLAY_WIDTH/2 - (TILE_WIDTH*wdt_bnd_rto*16)/2) + (TILE_WIDTH*hand_bnd_rto*num)
                 tile.rect.y = int(DISPLAY_HEIGHT/2 + (TILE_WIDTH*wdt_bnd_rto*18)/2) + TILE_WIDTH/2
+                tile.vertical = True
                 tile.set_angle(0)
             elif player == 1:
                 tile.rect.x = int(DISPLAY_WIDTH/2 - (TILE_WIDTH*wdt_bnd_rto*18)/2) - (TILE_HEIGHT/2) - TILE_HEIGHT
                 tile.rect.y = int(DISPLAY_HEIGHT/2 - (TILE_WIDTH*wdt_bnd_rto*16)/2) + (TILE_WIDTH*hand_bnd_rto*num)
-                tile.set_angle(90)
+                tile.vertical = False
+                tile.set_angle(270)
             elif player == 2:
                 tile.rect.x = int(DISPLAY_WIDTH/2 + (TILE_WIDTH*wdt_bnd_rto*16)/2) - (TILE_WIDTH*hand_bnd_rto*num)
                 tile.rect.y = int(DISPLAY_HEIGHT/2 - (TILE_WIDTH*wdt_bnd_rto*18)/2) - TILE_WIDTH/2
-                tile.set_angle(180)
+                tile.vertical = True
+                tile.set_angle(0)
             else:
                 tile.rect.x = int(DISPLAY_WIDTH/2 + (TILE_WIDTH*wdt_bnd_rto*20)/2) + (TILE_HEIGHT/2)
                 tile.rect.y = int(DISPLAY_HEIGHT/2 + (TILE_WIDTH*wdt_bnd_rto*16)/2) - (TILE_WIDTH*hand_bnd_rto*num)
+                tile.vertical = False
                 tile.set_angle(270)
-    
+                tile.set_angle(270)
+
     def reorder_player_hand(self, player=0):
         self.player[player].sort(key=lambda clef: clef.get_name())
     
