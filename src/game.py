@@ -29,10 +29,12 @@ class mahjong_tile(pygame.sprite.Sprite):
         self.name = filename
 
         self.vertical = True
+        #Load the hidden picture
         self.hidden = pygame.image.load(os.path.join(MEDIA_PATH, "hidden.png")).convert()
         self.hidden_horizontal = pygame.image.load(os.path.join(MEDIA_PATH, "hidden_horizontal.png")).convert()
         self.hidden.set_colorkey(white)
         self.hidden_horizontal.set_colorkey(white)
+        #Load the tile picture
         self.tile = pygame.image.load(os.path.join(MEDIA_PATH, "MJ" + filename + ".png")).convert()
         self.tile.set_colorkey(white)
 
@@ -87,13 +89,15 @@ class mahjong_board(object):
         self.paishan = []
         self.player = [[],[],[],[]]
 
-        self.paishan_pos = []
+        self.paishan_pos = []       #生成paishan的牌面位置（仅一次）
 
         self.vacancy_head = -1
         self.vacancy_tail = 0
 
         self.generate_paishan()
+
         self.set_sprites_from_paishan()
+        self.get_paishan_gfx_position()
         self.refresh_paishan_gfx()
         self.refresh_player_gfx(0)
         self.refresh_player_gfx(1)
@@ -116,67 +120,15 @@ class mahjong_board(object):
         self.graphic_system.clear_all_sprites()
         for a in self.paishan:
             self.graphic_system.add_sprite(a)
-    
-    # def get_next_paishan_gfx_position(self):
-    #     global DISPLAY_WIDTH, DISPLAY_HEIGHT, TILE_WIDTH, TILE_HEIGHT
-    #     wdt_bnd_rto = 0.85 # Tile Width Bounding Ratio
-    #     """syk"""
-    #     pos_bias_rto = 0.15
-    #     """syk"""
-    #     #syk: 牌山中上下排的牌没有对齐（下排的牌应稍微偏右），四个方向的牌山存在一定遮挡
-    #     while True:
-    #         # for x in range(int(DISPLAY_WIDTH/2 + (TILE_WIDTH*wdt_bnd_rto*16)/2), int(DISPLAY_WIDTH/2 - (TILE_WIDTH*wdt_bnd_rto*16)/2), int(-TILE_WIDTH*wdt_bnd_rto)):
-    #         #     for y in range(int(DISPLAY_HEIGHT/2 + (TILE_WIDTH*wdt_bnd_rto*15)/2), int(DISPLAY_HEIGHT/2 + (TILE_WIDTH*wdt_bnd_rto*15)/2 + 8), 6):
-    #         #         """syk"""
-    #         #         if y == int(DISPLAY_HEIGHT/2 + (TILE_WIDTH*wdt_bnd_rto*15)/2):
-    #         #             yield x+pos_bias_rto*TILE_WIDTH, y, 0
-    #         #         else:
-    #         #             yield x, y, 0
-    #         #         """syk"""
-    #         #         # yield x, y, 0           #syk experiment
-    #         for x in range(int(DISPLAY_WIDTH / 2 - (TILE_WIDTH * wdt_bnd_rto * 16) / 2),
-    #                        int(DISPLAY_WIDTH / 2 + (TILE_WIDTH * wdt_bnd_rto * 16) / 2),
-    #                        int(TILE_WIDTH * wdt_bnd_rto)):
-    #             for y in range(int(DISPLAY_HEIGHT / 2 + (TILE_WIDTH * wdt_bnd_rto * 16) / 2),
-    #                            int(DISPLAY_HEIGHT / 2 + (TILE_WIDTH * wdt_bnd_rto * 16) / 2 + 8), 6):
-    #                 """syk"""
-    #                 if y == int(DISPLAY_HEIGHT/2 + (TILE_WIDTH*wdt_bnd_rto*16)/2):
-    #                     yield x+pos_bias_rto*TILE_WIDTH, y, 0
-    #                 else:
-    #                     yield x, y, 0
-    #                 """syk"""
-    #                 # yield x, y, 0           #syk experiment
-    #         for x in range(int(DISPLAY_WIDTH / 2 - (TILE_WIDTH * wdt_bnd_rto * 17) / 2) - int(TILE_HEIGHT / 2),
-    #                        int(DISPLAY_WIDTH / 2 - (TILE_WIDTH * wdt_bnd_rto * 17) / 2) - int(TILE_HEIGHT / 2) - 8,
-    #                        -6):
-    #             for y in range(int(DISPLAY_HEIGHT / 2 + (TILE_WIDTH * wdt_bnd_rto * 16) / 2),
-    #                            int(DISPLAY_HEIGHT / 2 - (TILE_WIDTH * wdt_bnd_rto * 16) / 2),
-    #                            int(-TILE_WIDTH * wdt_bnd_rto)):
-    #                 # for x in range(int(DISPLAY_WIDTH/2 - (TILE_WIDTH*wdt_bnd_rto*17)/2) - (TILE_HEIGHT/2), int(DISPLAY_WIDTH/2 - (TILE_WIDTH*wdt_bnd_rto*17)/2) - (TILE_HEIGHT/2) - 8, -6):     #syk (TILE_HEIGHT/2)化整
-    #
-    #                 """syk"""
-    #                 if x == int(DISPLAY_WIDTH / 2 - (TILE_WIDTH * wdt_bnd_rto * 17) / 2) - int(TILE_HEIGHT / 2):
-    #                     yield x, y + pos_bias_rto * TILE_WIDTH, 270
-    #                 else:
-    #                     yield x, y, 270
-    #                 """syk"""
-    #                 # yield x - pos_bias_rto*TILE_WIDTH, y, 270
-    #         for x in range(int(DISPLAY_WIDTH/2 - (TILE_WIDTH*wdt_bnd_rto*16)/2), int(DISPLAY_WIDTH/2 + (TILE_WIDTH*wdt_bnd_rto*16)/2), int(TILE_WIDTH*wdt_bnd_rto)):
-    #             for y in range(int(DISPLAY_HEIGHT/2 - (TILE_WIDTH*wdt_bnd_rto*16)/2), int(DISPLAY_HEIGHT/2 - (TILE_WIDTH*wdt_bnd_rto*16)/2 + 8), 6):
-    #                 yield x, y, 0
-    #         for y in range(int(DISPLAY_HEIGHT/2 - (TILE_WIDTH*wdt_bnd_rto*16)/2), int(DISPLAY_HEIGHT/2 + (TILE_WIDTH*wdt_bnd_rto*16)/2 ), int(TILE_WIDTH*wdt_bnd_rto)):
-    #             # for x in range(int(DISPLAY_WIDTH/2 + (TILE_WIDTH*wdt_bnd_rto*17)/2) + (TILE_HEIGHT/2), int(DISPLAY_WIDTH/2 + (TILE_WIDTH*wdt_bnd_rto*17)/2) + (TILE_HEIGHT/2) + 8, 6):      #syk (TILE_HEIGHT/2)化整
-    #             for x in range(int(DISPLAY_WIDTH / 2 + (TILE_WIDTH * wdt_bnd_rto * 17) / 2) + int(TILE_HEIGHT / 2),
-    #                            int(DISPLAY_WIDTH / 2 + (TILE_WIDTH * wdt_bnd_rto * 17) / 2) + int(TILE_HEIGHT / 2) + 8, 6):
-    #                 yield x, y, 270
 
-    def get_next_paishan_gfx_position(self):
-        """return x, y, angle, vertical flag"""
-        global DISPLAY_WIDTH, DISPLAY_HEIGHT, TILE_WIDTH, TILE_HEIGHT
-        wdt_bnd_rto = 0.85 # Tile Width Bounding Ratio
+    def get_paishan_gfx_position(self):
+        a = self.paishan_pos[10]
+        wdt_bnd_rto = 0.85  # Tile Width Bounding Ratio
         """syk"""
         pos_bias_rto = 0.15
         """syk"""
+        global DISPLAY_WIDTH, DISPLAY_HEIGHT, TILE_WIDTH, TILE_HEIGHT
+        """return x, y, angle, vertical flag"""
         #syk: 牌山中上下排的牌没有对齐（下排的牌应稍微偏右），四个方向的牌山存在一定遮挡
         #syk: 若要有合适的视角，牌山的排布必须是从左至右，从上至下。因而对于牌山的抽取，pop的牌需要有一定的规律
         #syk: 水平放置的牌需从下而上插入add，垂直放置的牌需从左至右发放置。对于1,2位置有牌image放置与实际游戏放置顺序有所差异，需要进行位置换算
@@ -186,57 +138,45 @@ class mahjong_board(object):
                            int(TILE_WIDTH * wdt_bnd_rto)):
                 for y in range(int(DISPLAY_HEIGHT / 2 + (TILE_WIDTH * wdt_bnd_rto * 16) / 2),
                                int(DISPLAY_HEIGHT / 2 + (TILE_WIDTH * wdt_bnd_rto * 16) / 2 + 8), 6):
-                    """syk"""
                     if y == int(DISPLAY_HEIGHT/2 + (TILE_WIDTH*wdt_bnd_rto*16)/2):
-                        yield x+pos_bias_rto*TILE_WIDTH, y, 0, True
+                        self.paishan_pos.append((x+pos_bias_rto*TILE_WIDTH, y, 0, True))
                     else:
-                        yield x, y, 0, True
-                    """syk"""
+                        self.paishan_pos.append((x, y, 0, True))
             for y in range(int(DISPLAY_HEIGHT/2 + (TILE_WIDTH*wdt_bnd_rto*16)/2),           #player 1
                            int(DISPLAY_HEIGHT/2 - (TILE_WIDTH*wdt_bnd_rto*16)/2 ),
                            int(-TILE_WIDTH*wdt_bnd_rto)):
                 for x in range(int(DISPLAY_WIDTH / 2 + (TILE_WIDTH * wdt_bnd_rto * 17) / 2) + int(TILE_HEIGHT / 2),
                                int(DISPLAY_WIDTH / 2 + (TILE_WIDTH * wdt_bnd_rto * 17) / 2) + int(TILE_HEIGHT / 2) - 8, -6):
                     if x == int(DISPLAY_WIDTH / 2 + (TILE_WIDTH * wdt_bnd_rto * 17) / 2) + int(TILE_HEIGHT / 2):
-                        yield x, y - TILE_WIDTH*pos_bias_rto, 270, False
+                        self.paishan_pos.append((x, y - TILE_WIDTH*pos_bias_rto, 270, False))
                     else:
-                        yield x, y, 270, False
+                        self.paishan_pos.append((x, y, 270, False))
             for x in range(int(DISPLAY_WIDTH / 2 - (TILE_WIDTH * wdt_bnd_rto * 16) / 2),    #player 2
                            int(DISPLAY_WIDTH / 2 + (TILE_WIDTH * wdt_bnd_rto * 16) / 2),
                            int(TILE_WIDTH * wdt_bnd_rto)):
                 for y in range(int(DISPLAY_HEIGHT / 2 - (TILE_WIDTH * wdt_bnd_rto * 16) / 2),
                                    int(DISPLAY_HEIGHT / 2 - (TILE_WIDTH * wdt_bnd_rto * 16) / 2 + 8), 6):
                     if y == int(DISPLAY_HEIGHT / 2 - (TILE_WIDTH * wdt_bnd_rto * 16) / 2):
-                        yield x + pos_bias_rto*TILE_WIDTH, y, 0, True
+                        self.paishan_pos.append((x + pos_bias_rto*TILE_WIDTH, y, 0, True))
                     else:
-                        yield x, y, 0, True
+                        self.paishan_pos.append((x, y, 0, True))
             for y in range(int(DISPLAY_HEIGHT / 2 + (TILE_WIDTH * wdt_bnd_rto * 16) / 2),   #player 3
                            int(DISPLAY_HEIGHT / 2 - (TILE_WIDTH * wdt_bnd_rto * 16) / 2),
                            int(-TILE_WIDTH * wdt_bnd_rto)):
                 for x in range(int(DISPLAY_WIDTH / 2 - (TILE_WIDTH * wdt_bnd_rto * 17) / 2) - int(TILE_HEIGHT/2) - 6,
                                int(DISPLAY_WIDTH / 2 - (TILE_WIDTH * wdt_bnd_rto * 17) / 2) - int(TILE_HEIGHT/2) - 6 - 8,
                                -6):
-
-                    # for x in range(int(DISPLAY_WIDTH/2 - (TILE_WIDTH*wdt_bnd_rto*17)/2) - (TILE_HEIGHT/2), int(DISPLAY_WIDTH/2 - (TILE_WIDTH*wdt_bnd_rto*17)/2) - (TILE_HEIGHT/2) - 8, -6):     #syk (TILE_HEIGHT/2)化整
-
-                    """syk"""
                     if x == int(DISPLAY_WIDTH / 2 - (TILE_WIDTH * wdt_bnd_rto * 17) / 2) - int(TILE_HEIGHT / 2) - 6:
-                        yield x, y - pos_bias_rto * TILE_WIDTH, 270, False
+                        self.paishan_pos.append((x, y - pos_bias_rto * TILE_WIDTH, 270, False))
                     else:
-                        yield x, y, 270, False
+                        self.paishan_pos.append((yield x, y, 270, False))
                     """syk"""
-
-
-                    # yield x, y, 0           #syk experiment
-
-
 
 
     def refresh_paishan_gfx(self):        #head, tail is calc by defined by counter clockwise, means the vacancy pos
         """ssS
         Actualise les sprites affichant le paishan
         """
-        fgx_pos_iterateur = self.get_next_paishan_gfx_position()
         exceed_flag = False
         head = self.vacancy_head
         tail = self.vacancy_tail
@@ -246,15 +186,16 @@ class mahjong_board(object):
         for tile in self.paishan:
             if exceed_flag == False:
                 while num > head and num < tail:
-                    next(fgx_pos_iterateur)
+                    # next(fgx_pos_iterateur)
                     num += 1
             else:
                 while (num >= 0 and num < head) or (num < len(self.paishan)):
-                    next(fgx_pos_iterateur)
+                    # next(fgx_pos_iterateur)
                     num += 1
             # if num // (17*2) == 2 or num // (17*2) == 3:
             #
-            x, y, angle, vertical_flag = next(fgx_pos_iterateur)
+            # x, y, angle, vertical_flag = next(fgx_pos_iterateur)
+            x, y, angle, vertical_flag = self.paishan_pos[num]
             tile.vertical = vertical_flag
             tile.rect.x = x
             tile.rect.y = y
