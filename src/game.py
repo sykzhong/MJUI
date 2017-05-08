@@ -84,7 +84,7 @@ class mahjong_board(object):
     """
     def __init__(self, graphic_system):
         self.graphic_system = graphic_system
-        self.mur = []
+        self.paishan = []
         self.player = [[],[],[],[]]
 
         self.paishan_pos = []
@@ -92,9 +92,9 @@ class mahjong_board(object):
         self.vacancy_head = -1
         self.vacancy_tail = 0
 
-        self.generate_mur()
-        self.set_sprites_from_mur()
-        self.refresh_mur_gfx()
+        self.generate_paishan()
+        self.set_sprites_from_paishan()
+        self.refresh_paishan_gfx()
         self.refresh_player_gfx(0)
         self.refresh_player_gfx(1)
         self.refresh_player_gfx(2)
@@ -104,20 +104,20 @@ class mahjong_board(object):
         self.player_actuel = 0
         
     
-    def generate_mur(self):
-        self.mur = [mahjong_tile(a+str(b)) for a in 'stw' for b in range(1,10)] + [mahjong_tile('d'+str(a)) for a in range(1,4)] + [mahjong_tile('f'+str(a)) for a in range(1,5)]
-        self.mur += [mahjong_tile(a+str(b)) for a in 'stw' for b in range(1,10)] + [mahjong_tile('d'+str(a)) for a in range(1,4)] + [mahjong_tile('f'+str(a)) for a in range(1,5)]
-        self.mur += [mahjong_tile(a+str(b)) for a in 'stw' for b in range(1,10)] + [mahjong_tile('d'+str(a)) for a in range(1,4)] + [mahjong_tile('f'+str(a)) for a in range(1,5)]
-        self.mur += [mahjong_tile(a+str(b)) for a in 'stw' for b in range(1,10)] + [mahjong_tile('d'+str(a)) for a in range(1,4)] + [mahjong_tile('f'+str(a)) for a in range(1,5)]
-        [a.set_visibility(False) for a in self.mur] # Hack de compr�hension de liste
-        random.shuffle(self.mur)
+    def generate_paishan(self):
+        self.paishan = [mahjong_tile(a+str(b)) for a in 'stw' for b in range(1,10)] + [mahjong_tile('d'+str(a)) for a in range(1,4)] + [mahjong_tile('f'+str(a)) for a in range(1,5)]
+        self.paishan += [mahjong_tile(a+str(b)) for a in 'stw' for b in range(1,10)] + [mahjong_tile('d'+str(a)) for a in range(1,4)] + [mahjong_tile('f'+str(a)) for a in range(1,5)]
+        self.paishan += [mahjong_tile(a+str(b)) for a in 'stw' for b in range(1,10)] + [mahjong_tile('d'+str(a)) for a in range(1,4)] + [mahjong_tile('f'+str(a)) for a in range(1,5)]
+        self.paishan += [mahjong_tile(a+str(b)) for a in 'stw' for b in range(1,10)] + [mahjong_tile('d'+str(a)) for a in range(1,4)] + [mahjong_tile('f'+str(a)) for a in range(1,5)]
+        [a.set_visibility(False) for a in self.paishan] # Hack de compr�hension de liste
+        random.shuffle(self.paishan)
         
-    def set_sprites_from_mur(self):
+    def set_sprites_from_paishan(self):
         self.graphic_system.clear_all_sprites()
-        for a in self.mur:
+        for a in self.paishan:
             self.graphic_system.add_sprite(a)
     
-    # def get_next_mur_gfx_position(self):
+    # def get_next_paishan_gfx_position(self):
     #     global DISPLAY_WIDTH, DISPLAY_HEIGHT, TILE_WIDTH, TILE_HEIGHT
     #     wdt_bnd_rto = 0.85 # Tile Width Bounding Ratio
     #     """syk"""
@@ -170,7 +170,7 @@ class mahjong_board(object):
     #                            int(DISPLAY_WIDTH / 2 + (TILE_WIDTH * wdt_bnd_rto * 17) / 2) + int(TILE_HEIGHT / 2) + 8, 6):
     #                 yield x, y, 270
 
-    def get_next_mur_gfx_position(self):
+    def get_next_paishan_gfx_position(self):
         """return x, y, angle, vertical flag"""
         global DISPLAY_WIDTH, DISPLAY_HEIGHT, TILE_WIDTH, TILE_HEIGHT
         wdt_bnd_rto = 0.85 # Tile Width Bounding Ratio
@@ -232,24 +232,24 @@ class mahjong_board(object):
 
 
 
-    def refresh_mur_gfx(self):        #head, tail is calc by defined by counter clockwise, means the vacancy pos
+    def refresh_paishan_gfx(self):        #head, tail is calc by defined by counter clockwise, means the vacancy pos
+        """ssS
+        Actualise les sprites affichant le paishan
         """
-        Actualise les sprites affichant le mur
-        """
-        fgx_pos_iterateur = self.get_next_mur_gfx_position()
+        fgx_pos_iterateur = self.get_next_paishan_gfx_position()
         exceed_flag = False
         head = self.vacancy_head
         tail = self.vacancy_tail
         if head > tail:
             exceed_flag = True
         num = 0
-        for tile in self.mur:
+        for tile in self.paishan:
             if exceed_flag == False:
                 while num > head and num < tail:
                     next(fgx_pos_iterateur)
                     num += 1
             else:
-                while (num >= 0 and num < head) or (num < len(self.mur)):
+                while (num >= 0 and num < head) or (num < len(self.paishan)):
                     next(fgx_pos_iterateur)
                     num += 1
             # if num // (17*2) == 2 or num // (17*2) == 3:
@@ -261,7 +261,7 @@ class mahjong_board(object):
             tile.set_angle(angle)
             num += 1
 
-        # for tile in self.mur:
+        # for tile in self.paishan:
         #     # x, y, angle = fgx_pos_iterateur.next()        #syk python2->python3
         #     x, y, angle, vertical_flag = next(fgx_pos_iterateur)
         #     tile.vertical = vertical_flag
@@ -302,7 +302,7 @@ class mahjong_board(object):
     
     def pioche(self, player=0, refresh=True):
         # D�placer la tile dans la main du joueur
-        tile_piochee = self.mur.pop(0)
+        tile_piochee = self.paishan.pop(0)
         self.vacancy_tail += 1
         if player == 0:
             tile_piochee.set_visibility(True)
@@ -311,8 +311,8 @@ class mahjong_board(object):
         
         # Si on veut que la pioche reg�n�re les graphiques (lent)
         if refresh:
-            # Regenerer le mur
-            self.refresh_mur_gfx()
+            # Regenerer le paishan
+            self.refresh_paishan_gfx()
             
             # Regenerer la vue du joueur
             self.refresh_player_gfx(player)

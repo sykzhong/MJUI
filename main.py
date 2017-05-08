@@ -16,7 +16,7 @@ if __name__ == '__main__':
         for tile in range(13):
             jeu_mahjong.pioche(player, refresh=False)
         jeu_mahjong.refresh_player_gfx(player)
-    jeu_mahjong.refresh_mur_gfx()
+    jeu_mahjong.refresh_paishan_gfx()
 
     # Mouse handling
     mouse_underlay = mouse_cursor_underlay()
