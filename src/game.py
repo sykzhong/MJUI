@@ -30,7 +30,7 @@ class mahjong_tile(pygame.sprite.DirtySprite):
         self.name = filename
 
         self.vertical = True        #是否为垂直放置的标志
-        self._layer = 136              #显示的优先级
+        self._layer = 0              #显示的优先级
         # self.visible = False
 
         #Load the hidden picture
@@ -93,16 +93,15 @@ class mahjong_board(object):
         self.paishan = []
         self.player = [[],[],[],[]]
 
-
         self.paishan_pos = []       #生成paishan的牌面位置（仅一次）
 
-        self.vacancy_head = -1
-        self.vacancy_tail = 0
+        self.vacancy_head = -1      #记录空缺位置头
+        self.vacancy_tail = 0       #记录空缺位置尾
 
         self.generate_paishan()
 
         self.set_sprites_from_paishan()
-        self.get_syk_paishan_gfx_pos()
+        self.get_paishan_gfx_pos()
         self.refresh_paishan_gfx()
         self.refresh_player_gfx(0)
         self.refresh_player_gfx(1)
@@ -111,8 +110,7 @@ class mahjong_board(object):
         
         self.game_state = None
         self.player_actuel = 0
-        
-    
+
     def generate_paishan(self):
         self.paishan = [mahjong_tile(a+str(b)) for a in 'stw' for b in range(1,10)] + [mahjong_tile('d'+str(a)) for a in range(1,4)] + [mahjong_tile('f'+str(a)) for a in range(1,5)]
         self.paishan += [mahjong_tile(a+str(b)) for a in 'stw' for b in range(1,10)] + [mahjong_tile('d'+str(a)) for a in range(1,4)] + [mahjong_tile('f'+str(a)) for a in range(1,5)]
@@ -129,8 +127,7 @@ class mahjong_board(object):
             layer += 1
             self.graphic_system.add_sprite(a)
 
-
-    def get_syk_paishan_gfx_pos(self):
+    def get_paishan_gfx_pos(self):
         wdt_bnd_rto = 0.85  # Tile Width Bounding Ratio
         pos_bias_rto = 0.15
         global DISPLAY_WIDTH, DISPLAY_HEIGHT, TILE_WIDTH, TILE_HEIGHT
@@ -138,12 +135,13 @@ class mahjong_board(object):
         # syk: 牌山中上下排的牌没有对齐（下排的牌应稍微偏右），四个方向的牌山存在一定遮挡
         # syk: 若要有合适的视角，牌山的排布必须是从左至右，从上至下。因而对于牌山的抽取，pop的牌需要有一定的规律
         # syk: 水平放置的牌需从下而上插入add，垂直放置的牌需从左至右发放置。对于1,2位置有牌image放置与实际游戏放置顺序有所差异，需要进行位置换算
+        # syk: 按牌的原始顺序安排牌的位置。由于视觉上存在遮挡，所以在refresh函数中对牌的layer进行更新重置优先级
         for x in range(int(DISPLAY_WIDTH / 2 - (TILE_WIDTH * wdt_bnd_rto * 16) / 2),  # player 0
                        int(DISPLAY_WIDTH / 2 + (TILE_WIDTH * wdt_bnd_rto * 16) / 2),
                        int(TILE_WIDTH * wdt_bnd_rto)):
             for y in range(int(DISPLAY_HEIGHT / 2 + (TILE_WIDTH * wdt_bnd_rto * 16) / 2),
                            int(DISPLAY_HEIGHT / 2 + (TILE_WIDTH * wdt_bnd_rto * 16) / 2 + 8), 6):
-                if y == int(DISPLAY_HEIGHT / 2 + (TILE_WIDTH * wdt_bnd_rto * 16) / 2):
+                if y == int(DISPLAY_HEIGHT / 2 + (TILE_WIDTH * wdt_bnd_rto * 16) / 2):          #处于下排位置的牌视觉上须有错位感
                     self.paishan_pos.append((x + pos_bias_rto * TILE_WIDTH, y, 0, True))
                 else:
                     self.paishan_pos.append((x, y, 0, True))
@@ -153,38 +151,35 @@ class mahjong_board(object):
             for x in range(int(DISPLAY_WIDTH / 2 + (TILE_WIDTH * wdt_bnd_rto * 17) / 2) + int(TILE_HEIGHT / 2),
                            int(DISPLAY_WIDTH / 2 + (TILE_WIDTH * wdt_bnd_rto * 17) / 2) + int(TILE_HEIGHT / 2) - 8,
                            -6):
-                if x == int(DISPLAY_WIDTH / 2 + (TILE_WIDTH * wdt_bnd_rto * 17) / 2) + int(TILE_HEIGHT / 2):
+                if x == int(DISPLAY_WIDTH / 2 + (TILE_WIDTH * wdt_bnd_rto * 17) / 2) + int(TILE_HEIGHT / 2):        #处于下排位置的牌视觉上须有错位感
                     self.paishan_pos.append((x, y - TILE_WIDTH * pos_bias_rto, 270, False))
                 else:
                     self.paishan_pos.append((x, y, 270, False))
-        for x in range(int(DISPLAY_WIDTH / 2 - (TILE_WIDTH * wdt_bnd_rto * 16) / 2),  # player 2
-                       int(DISPLAY_WIDTH / 2 + (TILE_WIDTH * wdt_bnd_rto * 16) / 2),
-                       int(TILE_WIDTH * wdt_bnd_rto)):
+        for x in range(int(DISPLAY_WIDTH / 2 + (TILE_WIDTH * wdt_bnd_rto * 16) / 2),  # player 2
+                       int(DISPLAY_WIDTH / 2 - (TILE_WIDTH * wdt_bnd_rto * 16) / 2),
+                       int(-TILE_WIDTH * wdt_bnd_rto)):
             for y in range(int(DISPLAY_HEIGHT / 2 - (TILE_WIDTH * wdt_bnd_rto * 16) / 2),
                            int(DISPLAY_HEIGHT / 2 - (TILE_WIDTH * wdt_bnd_rto * 16) / 2 + 8), 6):
-                if y == int(DISPLAY_HEIGHT / 2 - (TILE_WIDTH * wdt_bnd_rto * 16) / 2):
-                    self.paishan_pos.append((x + pos_bias_rto * TILE_WIDTH, y, 0, True))
+                if y == int(DISPLAY_HEIGHT / 2 - (TILE_WIDTH * wdt_bnd_rto * 16) / 2 + 6):          #处于下排位置的牌视觉上须有错位感
+                    self.paishan_pos.append((x - pos_bias_rto * TILE_WIDTH, y, 0, True))
                 else:
                     self.paishan_pos.append((x, y, 0, True))
-        for y in range(int(DISPLAY_HEIGHT / 2 + (TILE_WIDTH * wdt_bnd_rto * 16) / 2),  # player 3
-                       int(DISPLAY_HEIGHT / 2 - (TILE_WIDTH * wdt_bnd_rto * 16) / 2),
-                       int(-TILE_WIDTH * wdt_bnd_rto)):
+        for y in range(int(DISPLAY_HEIGHT / 2 - (TILE_WIDTH * wdt_bnd_rto * 16) / 2),  # player 3
+                       int(DISPLAY_HEIGHT / 2 + (TILE_WIDTH * wdt_bnd_rto * 16) / 2),
+                       int(TILE_WIDTH * wdt_bnd_rto)):
             for x in range(int(DISPLAY_WIDTH / 2 - (TILE_WIDTH * wdt_bnd_rto * 17) / 2) - int(TILE_HEIGHT / 2) - 7,
                            int(DISPLAY_WIDTH / 2 - (TILE_WIDTH * wdt_bnd_rto * 17) / 2) - int(TILE_HEIGHT / 2) - 7 - 8,
                            -6):
-                if x == int(DISPLAY_WIDTH / 2 - (TILE_WIDTH * wdt_bnd_rto * 17) / 2) - int(TILE_HEIGHT / 2) - 7:
-                    self.paishan_pos.append((x, y - pos_bias_rto * TILE_WIDTH, 270, False))
+                if x == int(DISPLAY_WIDTH / 2 - (TILE_WIDTH * wdt_bnd_rto * 17) / 2) - int(TILE_HEIGHT / 2) - 7 - 6:        #处于下排位置的牌视觉上须有错位感
+                    self.paishan_pos.append((x, y + pos_bias_rto * TILE_WIDTH, 270, False))
                 else:
                     self.paishan_pos.append((x, y, 270, False))
-                """syk"""
-
-
 
     def refresh_paishan_gfx(self):        #head, tail is calc by defined by counter clockwise, means the vacancy pos
         """ssS
         Actualise les sprites affichant le paishan
         """
-        exceed_flag = False
+        exceed_flag = False     #判断空缺段是否跨越0与最末尾的牌
         head = self.vacancy_head
         tail = self.vacancy_tail
         if head > tail:
@@ -199,20 +194,25 @@ class mahjong_board(object):
                 while (num >= 0 and num < head) or (num < len(self.paishan)):
                     # next(fgx_pos_iterateur)
                     num += 1
-            playernum = num // (17 * 2)
+
+            x, y, angle, vertical_flag = self.paishan_pos[num]
+            """换算得到牌组的显示优先级"""
             tmpnum = num
-            # if playernum == 2 or playernum == 3:
-            #     tmpnum = 17*2*(playernum + 1) - (num - 17*2*playernum) - 1
-            #     if tmpnum%2 == 0:
-            #         tmpnum += 1
-            #     else:
-            #         tmpnum -= 1
-            x, y, angle, vertical_flag = self.paishan_pos[tmpnum]
+            playernum = num // (17 * 2)
+            if playernum == 2 or playernum == 3:
+                tmpnum = 17*2*(playernum + 1) - (num - 17*2*playernum) - 1
+                if tmpnum%2 == 0:
+                    tmpnum += 1
+                else:
+                    tmpnum -= 1
+
             tile.vertical = vertical_flag
             tile.rect.x = x
             tile.rect.y = y
+            tile._layer = tmpnum
             tile.set_angle(angle)
             num += 1
+        self.graphic_system.update_layer()      #更新显示优先级layer
 
         # for tile in self.paishan:
         #     # x, y, angle = fgx_pos_iterateur.next()        #syk python2->python3
@@ -221,9 +221,6 @@ class mahjong_board(object):
         #     tile.rect.x = x
         #     tile.rect.y = y
         #     tile.set_angle(angle)
-
-
-
 
     def refresh_player_gfx(self, player=0):
         """
@@ -234,25 +231,28 @@ class mahjong_board(object):
         global DISPLAY_WIDTH, DISPLAY_HEIGHT, TILE_WIDTH, TILE_HEIGHT
         for num, tile in enumerate(self.player[player]):
             if player == 0:
-                tile.rect.x = int(DISPLAY_WIDTH/2 - (TILE_WIDTH*wdt_bnd_rto*16)/2) + (TILE_WIDTH*hand_bnd_rto*num)
-                tile.rect.y = int(DISPLAY_HEIGHT/2 + (TILE_WIDTH*wdt_bnd_rto*18)/2) + TILE_WIDTH/2
+                tile.rect.x = int(DISPLAY_WIDTH/2 - (TILE_WIDTH*wdt_bnd_rto*15)/2) + (TILE_WIDTH*hand_bnd_rto*num)
+                # tile.rect.y = int(DISPLAY_HEIGHT/2 + (TILE_WIDTH*wdt_bnd_rto*18)/2) + TILE_WIDTH/2
+                tile.rect.y = 2 * TILE_HEIGHT
                 tile.vertical = True
                 tile.set_angle(0)
             elif player == 1:
-                tile.rect.x = int(DISPLAY_WIDTH/2 - (TILE_WIDTH*wdt_bnd_rto*18)/2) - (TILE_HEIGHT/2) - TILE_HEIGHT
-                tile.rect.y = int(DISPLAY_HEIGHT/2 - (TILE_WIDTH*wdt_bnd_rto*16)/2) + (TILE_WIDTH*hand_bnd_rto*num)
+                # tile.rect.x = int(DISPLAY_WIDTH / 2 + (TILE_WIDTH * wdt_bnd_rto * 20) / 2) + (TILE_HEIGHT / 2)
+                tile.rect.x = DISPLAY_WIDTH - 2 * TILE_HEIGHT
+                tile.rect.y = int(DISPLAY_HEIGHT / 2 + (TILE_WIDTH * wdt_bnd_rto * 16) / 2) - (TILE_WIDTH * hand_bnd_rto * num)
                 tile.vertical = False
                 tile.set_angle(270)
             elif player == 2:
-                tile.rect.x = int(DISPLAY_WIDTH/2 + (TILE_WIDTH*wdt_bnd_rto*16)/2) - (TILE_WIDTH*hand_bnd_rto*num)
-                tile.rect.y = int(DISPLAY_HEIGHT/2 - (TILE_WIDTH*wdt_bnd_rto*18)/2) - TILE_WIDTH/2
+                tile.rect.x = int(DISPLAY_WIDTH/2 - (TILE_WIDTH*wdt_bnd_rto*15)/2) + (TILE_WIDTH*hand_bnd_rto*num)
+                # tile.rect.y = int(DISPLAY_HEIGHT/2 - (TILE_WIDTH*wdt_bnd_rto*18)/2) - TILE_WIDTH/2
+                tile.rect.y = DISPLAY_HEIGHT - 2 * TILE_HEIGHT
                 tile.vertical = True
                 tile.set_angle(0)
             else:
-                tile.rect.x = int(DISPLAY_WIDTH/2 + (TILE_WIDTH*wdt_bnd_rto*20)/2) + (TILE_HEIGHT/2)
-                tile.rect.y = int(DISPLAY_HEIGHT/2 + (TILE_WIDTH*wdt_bnd_rto*16)/2) - (TILE_WIDTH*hand_bnd_rto*num)
+                # tile.rect.x = int(DISPLAY_WIDTH / 2 - (TILE_WIDTH * wdt_bnd_rto * 20) / 2) - TILE_HEIGHT / 2
+                tile.rect.x = TILE_HEIGHT
+                tile.rect.y = int(DISPLAY_HEIGHT / 2 - (TILE_WIDTH * wdt_bnd_rto * 16) / 2) + (TILE_WIDTH * hand_bnd_rto * num)
                 tile.vertical = False
-                tile.set_angle(270)
                 tile.set_angle(270)
 
     def reorder_player_hand(self, player=0):

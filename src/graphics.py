@@ -47,8 +47,8 @@ class graphic_system(object):
             self.screen.blit(text.get_rendering(), text.get_position())
 
     def update_layer(self):
-        for sprite in self.all_spites:
-            self.visible_sprites.change_layer(sprite, sprite._layer)
+        for sprite in self.all_sprites:
+            self.all_sprites.change_layer(sprite, sprite._layer)
 
             
 class mouse_cursor_underlay(pygame.sprite.Sprite):
