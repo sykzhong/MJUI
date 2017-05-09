@@ -21,14 +21,18 @@ class mahjong_text(pygame.font.Font):
         return [self.x, self.y]
 
 
-class mahjong_tile(pygame.sprite.Sprite):
-    def __init__(self, filename):
+class mahjong_tile(pygame.sprite.DirtySprite):
+    def __init__(self, filename, *groups):
         # Call the parent class (Sprite) constructor
-        pygame.sprite.Sprite.__init__(self) 
+        # pygame.sprite.Sprite.__init__(self)       #syk
+        super(mahjong_tile, self).__init__(*groups)
         
         self.name = filename
 
-        self.vertical = True
+        self.vertical = True        #是否为垂直放置的标志
+        self._layer = 136              #显示的优先级
+        # self.visible = False
+
         #Load the hidden picture
         self.hidden = pygame.image.load(os.path.join(MEDIA_PATH, "hidden.png")).convert()
         self.hidden_horizontal = pygame.image.load(os.path.join(MEDIA_PATH, "hidden_horizontal.png")).convert()
@@ -40,7 +44,7 @@ class mahjong_tile(pygame.sprite.Sprite):
 
         # Visible par d�fault
         self.image = self.tile
-        self.visible = True
+        self.visibility = True
 
         # Fetch the rectangle object that has the dimensions of the image
         # image.
@@ -57,20 +61,20 @@ class mahjong_tile(pygame.sprite.Sprite):
         """增加了牌组是否垂直的判断，以让视角正确"""
         rotate = pygame.transform.rotate
         if(self.vertical == True):
-            self.image = rotate(self.tile if self.visible == True else self.hidden, angle)                  #逆时针旋转angle角度
+            self.image = rotate(self.tile if self.visibility == True else self.hidden, angle)                  #逆时针旋转angle角度
         else:
-            self.image = rotate(self.tile if self.visible == True else self.hidden_horizontal, angle)       ##逆时针旋转angle角度
+            self.image = rotate(self.tile if self.visibility == True else self.hidden_horizontal, angle)       ##逆时针旋转angle角度
     
-    def set_visibility(self, visible=True):
-        if visible:
+    def set_visibility(self, visibility=True):
+        if visibility:
             self.image = self.tile
-            self.visible = True
+            self.visibility = True
         else:
             if self.vertical:
                 self.image = self.hidden
             else:
                 self.image = self.hidden_horizontal
-            self.visible = False
+            self.visibility = False
     
     def get_name(self):
         return self.name
@@ -88,6 +92,7 @@ class mahjong_board(object):
         self.graphic_system = graphic_system
         self.paishan = []
         self.player = [[],[],[],[]]
+
 
         self.paishan_pos = []       #生成paishan的牌面位置（仅一次）
 
@@ -118,8 +123,12 @@ class mahjong_board(object):
         
     def set_sprites_from_paishan(self):
         self.graphic_system.clear_all_sprites()
+        layer = 0
         for a in self.paishan:
+            a._layer = layer
+            layer += 1
             self.graphic_system.add_sprite(a)
+
 
     def get_syk_paishan_gfx_pos(self):
         wdt_bnd_rto = 0.85  # Tile Width Bounding Ratio
@@ -190,10 +199,15 @@ class mahjong_board(object):
                 while (num >= 0 and num < head) or (num < len(self.paishan)):
                     # next(fgx_pos_iterateur)
                     num += 1
-            # if num // (17*2) == 2 or num // (17*2) == 3:
-            #
-            # x, y, angle, vertical_flag = next(fgx_pos_iterateur)
-            x, y, angle, vertical_flag = self.paishan_pos[num]
+            playernum = num // (17 * 2)
+            tmpnum = num
+            # if playernum == 2 or playernum == 3:
+            #     tmpnum = 17*2*(playernum + 1) - (num - 17*2*playernum) - 1
+            #     if tmpnum%2 == 0:
+            #         tmpnum += 1
+            #     else:
+            #         tmpnum -= 1
+            x, y, angle, vertical_flag = self.paishan_pos[tmpnum]
             tile.vertical = vertical_flag
             tile.rect.x = x
             tile.rect.y = y

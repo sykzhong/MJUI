@@ -16,8 +16,9 @@ class graphic_system(object):
         global DISPLAY_WIDTH, DISPLAY_HEIGHT
         pygame.init()
         self.screen=pygame.display.set_mode([DISPLAY_WIDTH, DISPLAY_HEIGHT])
-        self.all_sprites = pygame.sprite.OrderedUpdates()
+        self.all_sprites = pygame.sprite.LayeredUpdates()
         self.all_text = []
+
 
     def add_sprite(self, sprite):
         self.all_sprites.add(sprite)
@@ -44,6 +45,10 @@ class graphic_system(object):
         # Draw Texts
         for text in self.all_text:
             self.screen.blit(text.get_rendering(), text.get_position())
+
+    def update_layer(self):
+        for sprite in self.all_spites:
+            self.visible_sprites.change_layer(sprite, sprite._layer)
 
             
 class mouse_cursor_underlay(pygame.sprite.Sprite):
