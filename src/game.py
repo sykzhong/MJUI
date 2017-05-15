@@ -129,10 +129,15 @@ class mahjong_board(object):
         #     layer += 1
         #     self.graphic_system.add_sprite(a)
         for num, a in enumerate(self.paishan):
-            if num%2 == 0:
-                a._layer = num+1
+            playernum = num // (17 * 2)
+            if playernum == 0 or playernum == 1 :
+                if num%2 == 0:
+                    a._layer = num+1
+                else:
+                    a._layer = num-1
             else:
-                a._layer = num-1
+                tmpnum = 17 * 2 * (playernum + 1) - (num - 17 * 2 * playernum) - 1
+                a._layer = tmpnum
             self.graphic_system.add_sprite(a)
 
 
@@ -176,10 +181,10 @@ class mahjong_board(object):
         for y in range(int(DISPLAY_HEIGHT / 2 - (TILE_WIDTH * wdt_bnd_rto * 16) / 2),  # player 3
                        int(DISPLAY_HEIGHT / 2 + (TILE_WIDTH * wdt_bnd_rto * 16) / 2),
                        int(TILE_WIDTH * wdt_bnd_rto)):
-            for x in range(int(DISPLAY_WIDTH / 2 - (TILE_WIDTH * wdt_bnd_rto * 17) / 2) - int(TILE_HEIGHT / 2) - 7,
-                           int(DISPLAY_WIDTH / 2 - (TILE_WIDTH * wdt_bnd_rto * 17) / 2) - int(TILE_HEIGHT / 2) - 7 - 8,
-                           -6):
-                if x == int(DISPLAY_WIDTH / 2 - (TILE_WIDTH * wdt_bnd_rto * 17) / 2) - int(TILE_HEIGHT / 2) - 7 - 6:        #处于下排位置的牌视觉上须有错位感
+            for x in range(int(DISPLAY_WIDTH / 2 - (TILE_WIDTH * wdt_bnd_rto * 17) / 2) - int(TILE_HEIGHT / 2) - 7 - 8,
+                           int(DISPLAY_WIDTH / 2 - (TILE_WIDTH * wdt_bnd_rto * 17) / 2) - int(TILE_HEIGHT / 2) - 7,
+                           6):
+                if x == int(DISPLAY_WIDTH / 2 - (TILE_WIDTH * wdt_bnd_rto * 17) / 2) - int(TILE_HEIGHT / 2) - 7 - 8:        #处于下排位置的牌视觉上须有错位感
                     self.paishan_pos.append((x, y + pos_bias_rto * TILE_WIDTH, 270, False))
                 else:
                     self.paishan_pos.append((x, y, 270, False))
@@ -206,15 +211,15 @@ class mahjong_board(object):
 
             x, y, angle, vertical_flag = self.paishan_pos[num]
             """换算得到牌组的显示优先级"""
-            tmpnum = num
-            playernum = num // (17 * 2)
-            if playernum == 2 or playernum == 3:
-                tmpnum = 17*2*(playernum + 1) - (num - 17*2*playernum) - 1
-                if tmpnum%2 == 0:
-                    tmpnum += 1
-                else:
-                    tmpnum -= 1
-                tile._layer = tmpnum
+            # tmpnum = num
+            # playernum = num // (17 * 2)
+            # if playernum == 2 or playernum == 3:
+            #     tmpnum = 17*2*(playernum + 1) - (num - 17*2*playernum) - 1
+            #     if tmpnum%2 == 0:
+            #         tmpnum += 1
+            #     else:
+            #         tmpnum -= 1
+            #     tile._layer = tmpnum
 
             tile.vertical = vertical_flag
             tile.rect.x = x
