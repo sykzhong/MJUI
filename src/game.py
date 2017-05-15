@@ -124,10 +124,17 @@ class mahjong_board(object):
     def set_sprites_from_paishan(self):
         self.graphic_system.clear_all_sprites()
         layer = 0
-        for a in self.paishan:
-            a._layer = layer
-            layer += 1
+        # for a in self.paishan:
+        #     a._layer = layer
+        #     layer += 1
+        #     self.graphic_system.add_sprite(a)
+        for num, a in enumerate(self.paishan):
+            if num%2 == 0:
+                a._layer = num+1
+            else:
+                a._layer = num-1
             self.graphic_system.add_sprite(a)
+
 
     def get_paishan_gfx_pos(self):
         wdt_bnd_rto = 0.85  # Tile Width Bounding Ratio
@@ -141,28 +148,28 @@ class mahjong_board(object):
         for x in range(int(DISPLAY_WIDTH / 2 - (TILE_WIDTH * wdt_bnd_rto * 16) / 2),  # player 0
                        int(DISPLAY_WIDTH / 2 + (TILE_WIDTH * wdt_bnd_rto * 16) / 2),
                        int(TILE_WIDTH * wdt_bnd_rto)):
-            for y in range(int(DISPLAY_HEIGHT / 2 + (TILE_WIDTH * wdt_bnd_rto * 16) / 2),
-                           int(DISPLAY_HEIGHT / 2 + (TILE_WIDTH * wdt_bnd_rto * 16) / 2 + 8), 6):
-                if y == int(DISPLAY_HEIGHT / 2 + (TILE_WIDTH * wdt_bnd_rto * 16) / 2):          #处于下排位置的牌视觉上须有错位感
+            for y in range(int(DISPLAY_HEIGHT / 2 + (TILE_WIDTH * wdt_bnd_rto * 16) / 2 + 8),
+                           int(DISPLAY_HEIGHT / 2 + (TILE_WIDTH * wdt_bnd_rto * 16) / 2), -6):
+                if y == int(DISPLAY_HEIGHT / 2 + (TILE_WIDTH * wdt_bnd_rto * 16 + 8) / 2 + 8):          #处于下排位置的牌视觉上须有错位感
                     self.paishan_pos.append((x + pos_bias_rto * TILE_WIDTH, y, 0, True))
                 else:
                     self.paishan_pos.append((x, y, 0, True))
         for y in range(int(DISPLAY_HEIGHT / 2 + (TILE_WIDTH * wdt_bnd_rto * 16) / 2),  # player 1
                        int(DISPLAY_HEIGHT / 2 - (TILE_WIDTH * wdt_bnd_rto * 16) / 2),
                        int(-TILE_WIDTH * wdt_bnd_rto)):
-            for x in range(int(DISPLAY_WIDTH / 2 + (TILE_WIDTH * wdt_bnd_rto * 17) / 2) + int(TILE_HEIGHT / 2),
-                           int(DISPLAY_WIDTH / 2 + (TILE_WIDTH * wdt_bnd_rto * 17) / 2) + int(TILE_HEIGHT / 2) - 8,
-                           -6):
-                if x == int(DISPLAY_WIDTH / 2 + (TILE_WIDTH * wdt_bnd_rto * 17) / 2) + int(TILE_HEIGHT / 2):        #处于下排位置的牌视觉上须有错位感
+            for x in range(int(DISPLAY_WIDTH / 2 + (TILE_WIDTH * wdt_bnd_rto * 17) / 2) + int(TILE_HEIGHT / 2) - 8,
+                           int(DISPLAY_WIDTH / 2 + (TILE_WIDTH * wdt_bnd_rto * 17) / 2) + int(TILE_HEIGHT / 2),
+                           6):
+                if x == int(DISPLAY_WIDTH / 2 + (TILE_WIDTH * wdt_bnd_rto * 17) / 2) + int(TILE_HEIGHT / 2) - 2:        #处于下排位置的牌视觉上须有错位感
                     self.paishan_pos.append((x, y - TILE_WIDTH * pos_bias_rto, 270, False))
                 else:
                     self.paishan_pos.append((x, y, 270, False))
         for x in range(int(DISPLAY_WIDTH / 2 + (TILE_WIDTH * wdt_bnd_rto * 16) / 2),  # player 2
                        int(DISPLAY_WIDTH / 2 - (TILE_WIDTH * wdt_bnd_rto * 16) / 2),
                        int(-TILE_WIDTH * wdt_bnd_rto)):
-            for y in range(int(DISPLAY_HEIGHT / 2 - (TILE_WIDTH * wdt_bnd_rto * 16) / 2),
-                           int(DISPLAY_HEIGHT / 2 - (TILE_WIDTH * wdt_bnd_rto * 16) / 2 + 8), 6):
-                if y == int(DISPLAY_HEIGHT / 2 - (TILE_WIDTH * wdt_bnd_rto * 16) / 2 + 6):          #处于下排位置的牌视觉上须有错位感
+            for y in range(int(DISPLAY_HEIGHT / 2 - (TILE_WIDTH * wdt_bnd_rto * 16) / 2 + 8),
+                           int(DISPLAY_HEIGHT / 2 - (TILE_WIDTH * wdt_bnd_rto * 16) / 2), -6):
+                if y == int(DISPLAY_HEIGHT / 2 - (TILE_WIDTH * wdt_bnd_rto * 16) / 2 + 8):          #处于下排位置的牌视觉上须有错位感
                     self.paishan_pos.append((x - pos_bias_rto * TILE_WIDTH, y, 0, True))
                 else:
                     self.paishan_pos.append((x, y, 0, True))
@@ -207,11 +214,12 @@ class mahjong_board(object):
                     tmpnum += 1
                 else:
                     tmpnum -= 1
+                tile._layer = tmpnum
 
             tile.vertical = vertical_flag
             tile.rect.x = x
             tile.rect.y = y
-            tile._layer = tmpnum
+            # tile._layer = tmpnum
             tile.set_angle(angle)
             num += 1
         self.graphic_system.update_layer()      #更新显示优先级layer
