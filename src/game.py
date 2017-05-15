@@ -22,7 +22,7 @@ class mahjong_text(pygame.font.Font):
 
 TILE_STATE_PAISHAN = ["PaiShan"]
 TILE_STATE_HAND = ["HandTile_0", "HandTile_1", "HandTile_2", "HandTile_3"]
-TILE_STATE_BOARD = ["OnBoard_0", "OnBoard_1", "OnBoard_2", "OnBoard_3"]
+TILE_STATE_BOARD = ["BoardTile_0", "BoardTile_0", "BoardTile_0", "BoardTile_0"]
 
 class mahjong_tile(pygame.sprite.DirtySprite):
     def __init__(self, filename, *groups):
@@ -96,7 +96,8 @@ class mahjong_board(object):
     def __init__(self, graphic_system):
         self.graphic_system = graphic_system
         self.paishan = []
-        self.player = [[],[],[],[]]
+        self.player = [[], [], [], []]
+        self.board = [[], [], [], []]
 
         self.paishan_pos = []               #生成paishan的牌面位置（仅一次）
         self.player_pos = [[],[],[],[]]     #生成player的牌面位置
@@ -109,7 +110,7 @@ class mahjong_board(object):
         self.set_sprites_from_paishan()
         self.get_paishan_gfx_pos()
         self.refresh_paishan_gfx()
-        self.init_player_card()
+        self.init_player_tile()
         # self.refresh_player_gfx(0)
         # self.refresh_player_gfx(1)
         # self.refresh_player_gfx(2)
@@ -340,24 +341,49 @@ class mahjong_board(object):
             # Regenerer la vue du joueur
             self.refresh_player_gfx(player)
 
-    def init_player_card(self):
+    def init_player_tile(self):
         for player in range(4):
             for tile in range(13):
                 self.player_get_tile(player, refresh=False)
             self.refresh_player_gfx(player)
         self.refresh_paishan_gfx()
 
-    def player_out_card(self, player=0, tilepos=-1):
+    def player_out_tile(self, player=0, tilepos=-1):
         if tilepos < 0 or tilepos >= len(self.player[player]):
             return -1
         """syk此处需要进行牌组转移board的处理"""
         # self.player[player][tilepos]._layer = 0
-        self.player[player][tilepos].rect.x = 0
+        # self.player[player][tilepos].rect.x = 0
+        self.board_get_tile(player=player, tilepos=tilepos)
         """-------------------------------"""
         self.player[player].pop(tilepos)
         self.reorder_player_hand(player=player)
         self.refresh_player_gfx(player)
         return 1
+
+    def board_get_tile(self, player=0, tilepos=-1):
+        if tilepos < 0 or tilepos >= len(self.player[player]):
+            return -1
+
+        tile = self.player[player][tilepos]
+        """configure the state of tile"""
+        tile.tilestate = TILE_STATE_BOARD[player]
+        tile.vertical = True
+        tile.set_visibility(True)
+        tile.set_angle(0)
+        board_tile_num = 0
+        for i in range(0, 4):
+            board_tile_num += len(self.board[i])
+        self.graphic_system.all_sprites.change_layer(tile, board_tile_num)
+
+        """configure the pos of tile"""
+        global DISPLAY_WIDTH, DISPLAY_HEIGHT, TILE_HEIGHT, TILE_WIDTH
+        wdt_bnd_rto = 0.85  # Tile Width Bounding Ratio
+        board_begin_x = int(DISPLAY_WIDTH/2 - 15*wdt_bnd_rto*TILE_WIDTH/2)
+        board_begin_y = int(DISPLAY_HEIGHT/2 + 15*wdt_bnd_rto*TILE_WIDTH/2)
+        tile.rect.x = board_tile_num*wdt_bnd_rto*TILE_WIDTH + board_begin_x
+        tile.rect.y = board_begin_y
+        self.board[player].append(tile)
 
     def next_step(self):
         if self.game_state == "get_tile":

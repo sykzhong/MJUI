@@ -39,7 +39,7 @@ if __name__ == '__main__':
                     # selected_sprites.clear()
                     selected_sprites = pygame.sprite.spritecollide(mouse_underlay, graphics.all_sprites, False)
                     if len(selected_sprites) != 0 and selected_sprites[0].tilestate in TILE_STATE_HAND[0]:
-                        out_success_flag = Board.player_out_card(player=0, tilepos=selected_sprites[0].tilepos)
+                        out_success_flag = Board.player_out_tile(player=0, tilepos=selected_sprites[0].tilepos)
                         selected_sprites = []
                         if(out_success_flag == -1):
                             continue
