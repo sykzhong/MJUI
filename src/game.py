@@ -20,6 +20,9 @@ class mahjong_text(pygame.font.Font):
     def get_position(self):
         return [self.x, self.y]
 
+TILE_STATE_PAISHAN = ["PaiShan"]
+TILE_STATE_HAND = ["HandTile_0", "HandTile_1", "HandTile_2", "HandTile_3"]
+TILE_STATE_BOARD = ["OnBoard_0", "OnBoard_1", "OnBoard_2", "OnBoard_3"]
 
 class mahjong_tile(pygame.sprite.DirtySprite):
     def __init__(self, filename, *groups):
@@ -31,6 +34,7 @@ class mahjong_tile(pygame.sprite.DirtySprite):
 
         self.vertical = True        #是否为垂直放置的标志
         self._layer = 0              #显示的优先级
+        self.tilestate = "PaiShan"
         # self.visible = False
 
         #Load the hidden picture
@@ -252,24 +256,28 @@ class mahjong_board(object):
                 # tile.rect.y = int(DISPLAY_HEIGHT/2 + (TILE_WIDTH*wdt_bnd_rto*18)/2) + TILE_WIDTH/2
                 tile.rect.y = DISPLAY_HEIGHT - 2 * TILE_HEIGHT
                 tile.vertical = True
+                # tile.tilestate = "Player_0"
                 tile.set_angle(0)
             elif player == 1:
                 # tile.rect.x = int(DISPLAY_WIDTH / 2 + (TILE_WIDTH * wdt_bnd_rto * 20) / 2) + (TILE_HEIGHT / 2)
                 tile.rect.x = DISPLAY_WIDTH - 2 * TILE_HEIGHT
                 tile.rect.y = int(DISPLAY_HEIGHT / 2 + (TILE_WIDTH * wdt_bnd_rto * hand_count) / 2) - (TILE_WIDTH * hand_bnd_rto * num)
                 tile.vertical = False
+                # tile.tilestate = "Player_1"
                 tile.set_angle(270)
             elif player == 2:
                 tile.rect.x = int(DISPLAY_WIDTH/2 - (TILE_WIDTH*wdt_bnd_rto*hand_count)/2) + (TILE_WIDTH*hand_bnd_rto*num)
                 # tile.rect.y = int(DISPLAY_HEIGHT/2 - (TILE_WIDTH*wdt_bnd_rto*18)/2) - TILE_WIDTH/2
                 tile.rect.y = 2 * TILE_HEIGHT
                 tile.vertical = True
+                # tile.tilestate = "Player_2"
                 tile.set_angle(0)
             else:
                 # tile.rect.x = int(DISPLAY_WIDTH / 2 - (TILE_WIDTH * wdt_bnd_rto * 20) / 2) - TILE_HEIGHT / 2
                 tile.rect.x = TILE_HEIGHT
                 tile.rect.y = int(DISPLAY_HEIGHT / 2 - (TILE_WIDTH * wdt_bnd_rto * hand_count) / 2) + (TILE_WIDTH * hand_bnd_rto * num)
                 tile.vertical = False
+                # tile.tilestate = "Player_3"
                 tile.set_angle(270)
 
     def reorder_player_hand(self, player=0):
@@ -278,6 +286,7 @@ class mahjong_board(object):
     def player_get_tile(self, player=0, refresh=True, action = False):
         # D�placer la tile dans la main du joueur
         tile_get = self.paishan.pop(0)
+        tile_get.tilestate = TILE_STATE_HAND[player]
         self.vacancy_tail += 1
         if player == 0:
             tile_get.set_visibility(True)
