@@ -93,7 +93,8 @@ class mahjong_board(object):
         self.paishan = []
         self.player = [[],[],[],[]]
 
-        self.paishan_pos = []       #生成paishan的牌面位置（仅一次）
+        self.paishan_pos = []               #生成paishan的牌面位置（仅一次）
+        self.player_pos = [[],[],[],[]]     #生成player的牌面位置
 
         self.vacancy_head = -1      #记录空缺位置头
         self.vacancy_tail = 0       #记录空缺位置尾
@@ -103,11 +104,12 @@ class mahjong_board(object):
         self.set_sprites_from_paishan()
         self.get_paishan_gfx_pos()
         self.refresh_paishan_gfx()
-        self.refresh_player_gfx(0)
-        self.refresh_player_gfx(1)
-        self.refresh_player_gfx(2)
-        self.refresh_player_gfx(3)
-        
+        self.init_player_card()
+        # self.refresh_player_gfx(0)
+        # self.refresh_player_gfx(1)
+        # self.refresh_player_gfx(2)
+        # self.refresh_player_gfx(3)
+        #
         self.game_state = None
         self.player_actuel = 0
 
@@ -229,56 +231,100 @@ class mahjong_board(object):
         wdt_bnd_rto = 0.85 # Tile Width Bounding Ratio
         hand_bnd_rto = 1.0
         global DISPLAY_WIDTH, DISPLAY_HEIGHT, TILE_WIDTH, TILE_HEIGHT
+        hand_count = len(self.player[player])
         for num, tile in enumerate(self.player[player]):
             if player == 0:
-                tile.rect.x = int(DISPLAY_WIDTH/2 - (TILE_WIDTH*wdt_bnd_rto*15)/2) + (TILE_WIDTH*hand_bnd_rto*num)
+                # tile.rect.x = int(DISPLAY_WIDTH/2 - (TILE_WIDTH*wdt_bnd_rto*15)/2) + (TILE_WIDTH*hand_bnd_rto*num)
+                tile.rect.x = int(DISPLAY_WIDTH/2 - (TILE_WIDTH*wdt_bnd_rto*hand_count)/2) + (TILE_WIDTH*hand_bnd_rto*num)
                 # tile.rect.y = int(DISPLAY_HEIGHT/2 + (TILE_WIDTH*wdt_bnd_rto*18)/2) + TILE_WIDTH/2
-                tile.rect.y = 2 * TILE_HEIGHT
+                tile.rect.y = DISPLAY_HEIGHT - 2 * TILE_HEIGHT
                 tile.vertical = True
                 tile.set_angle(0)
             elif player == 1:
                 # tile.rect.x = int(DISPLAY_WIDTH / 2 + (TILE_WIDTH * wdt_bnd_rto * 20) / 2) + (TILE_HEIGHT / 2)
                 tile.rect.x = DISPLAY_WIDTH - 2 * TILE_HEIGHT
-                tile.rect.y = int(DISPLAY_HEIGHT / 2 + (TILE_WIDTH * wdt_bnd_rto * 16) / 2) - (TILE_WIDTH * hand_bnd_rto * num)
+                tile.rect.y = int(DISPLAY_HEIGHT / 2 + (TILE_WIDTH * wdt_bnd_rto * hand_count) / 2) - (TILE_WIDTH * hand_bnd_rto * num)
                 tile.vertical = False
                 tile.set_angle(270)
             elif player == 2:
-                tile.rect.x = int(DISPLAY_WIDTH/2 - (TILE_WIDTH*wdt_bnd_rto*15)/2) + (TILE_WIDTH*hand_bnd_rto*num)
+                tile.rect.x = int(DISPLAY_WIDTH/2 - (TILE_WIDTH*wdt_bnd_rto*hand_count)/2) + (TILE_WIDTH*hand_bnd_rto*num)
                 # tile.rect.y = int(DISPLAY_HEIGHT/2 - (TILE_WIDTH*wdt_bnd_rto*18)/2) - TILE_WIDTH/2
-                tile.rect.y = DISPLAY_HEIGHT - 2 * TILE_HEIGHT
+                tile.rect.y = 2 * TILE_HEIGHT
                 tile.vertical = True
                 tile.set_angle(0)
             else:
                 # tile.rect.x = int(DISPLAY_WIDTH / 2 - (TILE_WIDTH * wdt_bnd_rto * 20) / 2) - TILE_HEIGHT / 2
                 tile.rect.x = TILE_HEIGHT
-                tile.rect.y = int(DISPLAY_HEIGHT / 2 - (TILE_WIDTH * wdt_bnd_rto * 16) / 2) + (TILE_WIDTH * hand_bnd_rto * num)
+                tile.rect.y = int(DISPLAY_HEIGHT / 2 - (TILE_WIDTH * wdt_bnd_rto * hand_count) / 2) + (TILE_WIDTH * hand_bnd_rto * num)
                 tile.vertical = False
                 tile.set_angle(270)
 
     def reorder_player_hand(self, player=0):
         self.player[player].sort(key=lambda clef: clef.get_name())
     
-    def pioche(self, player=0, refresh=True):
+    def player_get_tile(self, player=0, refresh=True, action = False):
         # D�placer la tile dans la main du joueur
-        tile_piochee = self.paishan.pop(0)
+        tile_get = self.paishan.pop(0)
         self.vacancy_tail += 1
         if player == 0:
-            tile_piochee.set_visibility(True)
-        self.player[player].append(tile_piochee)
-        self.reorder_player_hand(player)
-        
+            tile_get.set_visibility(True)
+        if action == False:
+            #非游戏抽牌情况
+            self.player[player].append(tile_get)
+            self.reorder_player_hand(player)
+        else:
+            #游戏抽牌情况
+            wdt_bnd_rto = 0.85  # Tile Width Bounding Ratio
+            hand_bnd_rto = 1.0
+            global DISPLAY_WIDTH, DISPLAY_HEIGHT, TILE_WIDTH, TILE_HEIGHT
+            hand_count = len(self.player[player])
+            if player == 0:
+                # # tile.rect.x = int(DISPLAY_WIDTH/2 - (TILE_WIDTH*wdt_bnd_rto*15)/2) + (TILE_WIDTH*hand_bnd_rto*num)
+                # tile_get.rect.x = int(DISPLAY_WIDTH/2 + TILE_WIDTH*wdt_bnd_rto*(hand_count/2 + 1))
+                # # tile.rect.y = int(DISPLAY_HEIGHT/2 + (TILE_WIDTH*wdt_bnd_rto*18)/2) + TILE_WIDTH/2
+                # tile_get.rect.y = DISPLAY_HEIGHT - 2 * TILE_HEIGHT
+                # tile_get.vertical = True
+                # tile_get.set_angle(0)
+                tile_get.rect.x = self.player[player][-1].rect.x + TILE_WIDTH*wdt_bnd_rto*1.5
+                tile_get.rect.y = self.player[player][-1].rect.y
+                tile_get.vertical = True
+                tile_get.set_angle(0)
+            elif player == 1:
+                # tile.rect.x = int(DISPLAY_WIDTH / 2 + (TILE_WIDTH * wdt_bnd_rto * 20) / 2) + (TILE_HEIGHT / 2)
+                tile_get.rect.x = DISPLAY_WIDTH - 2 * TILE_HEIGHT
+                tile_get.rect.y = int(DISPLAY_HEIGHT / 2 + (TILE_WIDTH * wdt_bnd_rto * hand_count) / 2 + 1)
+                tile_get.vertical = False
+                tile_get.set_angle(270)
+            elif player == 2:
+                tile_get.rect.x = int(DISPLAY_WIDTH/2 - (TILE_WIDTH*wdt_bnd_rto*hand_count)/2 + 1)
+                # tile.rect.y = int(DISPLAY_HEIGHT/2 - (TILE_WIDTH*wdt_bnd_rto*18)/2) - TILE_WIDTH/2
+                tile_get.rect.y = 2 * TILE_HEIGHT
+                tile_get.vertical = True
+                tile_get.set_angle(0)
+            else:
+                # tile.rect.x = int(DISPLAY_WIDTH / 2 - (TILE_WIDTH * wdt_bnd_rto * 20) / 2) - TILE_HEIGHT / 2
+                tile_get.rect.x = TILE_HEIGHT
+                tile_get.rect.y = int(DISPLAY_HEIGHT / 2 - (TILE_WIDTH * wdt_bnd_rto * hand_count) / 2 + 1)
+                tile_get.vertical = False
+                tile_get.set_angle(270)
+            self.player[player].append(tile_get)
         # Si on veut que la pioche reg�n�re les graphiques (lent)
         if refresh:
             # Regenerer le paishan
             self.refresh_paishan_gfx()
-            
             # Regenerer la vue du joueur
             self.refresh_player_gfx(player)
-            
-            
+
+    def init_player_card(self):
+        for player in range(4):
+            for tile in range(13):
+                self.player_get_tile(player, refresh=False)
+            self.refresh_player_gfx(player)
+        self.refresh_paishan_gfx()
+
     def next_step(self):
-        if self.game_state == "piocher":
-            self.pioche(self.player_actuel)
+        if self.game_state == "get_tile":
+            self.player_get_tile(self.player_actuel)
             self.game_state = "waiting_action"
         elif self.game_state == "waiting_action":
             pass
@@ -287,4 +333,4 @@ class mahjong_board(object):
         else:
             # On d�bute ou on est perdu
             self.player_actuel = 0
-            self.game_state = "piocher"
+            self.game_state = "get_tile"

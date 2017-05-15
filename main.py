@@ -9,14 +9,14 @@ from src import *
 if __name__ == '__main__':
     # Systems initialisation
     graphics = graphic_system()
-    jeu_mahjong = mahjong_board(graphics)
+    Board = mahjong_board(graphics)
 
     # Piocher les 13 tuiles - REDO with real rules
-    for player in range(4):
-        for tile in range(13):
-            jeu_mahjong.pioche(player, refresh=False)
-        jeu_mahjong.refresh_player_gfx(player)
-    jeu_mahjong.refresh_paishan_gfx()
+    # for player in range(4):
+    #     for tile in range(13):
+    #         jeu_mahjong.tile_get(player, refresh=False)
+    #     jeu_mahjong.refresh_player_gfx(player)
+    # jeu_mahjong.refresh_paishan_gfx()
 
     # Mouse handling
     mouse_underlay = mouse_cursor_underlay()
@@ -35,6 +35,7 @@ if __name__ == '__main__':
                     mouse_underlay.rect.y = event.pos[1]
                     selected_sprites = pygame.sprite.spritecollide(mouse_underlay, graphics.all_sprites, False)
                     # TODO: Do something with the click tiles
+                    Board.player_get_tile(player=0, refresh=False, action=True)
 
         # Game handling
         # jeu_mahjong.next_step()
