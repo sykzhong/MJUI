@@ -35,6 +35,7 @@ class mahjong_tile(pygame.sprite.DirtySprite):
         self.vertical = True        #是否为垂直放置的标志
         self._layer = 0              #显示的优先级
         self.tilestate = "PaiShan"
+        self.tilepos = -1           #若为-1表示在paishan或board，若>=0表示在手中的位置
         # self.visible = False
 
         #Load the hidden picture
@@ -166,10 +167,10 @@ class mahjong_board(object):
         for y in range(int(DISPLAY_HEIGHT / 2 + (TILE_WIDTH * wdt_bnd_rto * 16) / 2),  # player 1
                        int(DISPLAY_HEIGHT / 2 - (TILE_WIDTH * wdt_bnd_rto * 16) / 2),
                        int(-TILE_WIDTH * wdt_bnd_rto)):
-            for x in range(int(DISPLAY_WIDTH / 2 + (TILE_WIDTH * wdt_bnd_rto * 17) / 2) + int(TILE_HEIGHT / 2) - 8,
-                           int(DISPLAY_WIDTH / 2 + (TILE_WIDTH * wdt_bnd_rto * 17) / 2) + int(TILE_HEIGHT / 2),
+            for x in range(int(DISPLAY_WIDTH / 2 + (TILE_WIDTH * wdt_bnd_rto * 17) / 2) + int(TILE_HEIGHT / 2) - 2,
+                           int(DISPLAY_WIDTH / 2 + (TILE_WIDTH * wdt_bnd_rto * 17) / 2) + int(TILE_HEIGHT / 2)+ 6,
                            6):
-                if x == int(DISPLAY_WIDTH / 2 + (TILE_WIDTH * wdt_bnd_rto * 17) / 2) + int(TILE_HEIGHT / 2) - 2:        #处于下排位置的牌视觉上须有错位感
+                if x == int(DISPLAY_WIDTH / 2 + (TILE_WIDTH * wdt_bnd_rto * 17) / 2) + int(TILE_HEIGHT / 2) + 4:        #处于下排位置的牌视觉上须有错位感
                     self.paishan_pos.append((x, y - TILE_WIDTH * pos_bias_rto, 270, False))
                 else:
                     self.paishan_pos.append((x, y, 270, False))
@@ -279,6 +280,7 @@ class mahjong_board(object):
                 tile.vertical = False
                 # tile.tilestate = "Player_3"
                 tile.set_angle(270)
+            tile.tilepos = num
 
     def reorder_player_hand(self, player=0):
         self.player[player].sort(key=lambda clef: clef.get_name())
@@ -300,6 +302,7 @@ class mahjong_board(object):
             hand_bnd_rto = 1.0
             global DISPLAY_WIDTH, DISPLAY_HEIGHT, TILE_WIDTH, TILE_HEIGHT
             hand_count = len(self.player[player])
+            tile_get.tilepos = hand_count
             if player == 0:
                 # # tile.rect.x = int(DISPLAY_WIDTH/2 - (TILE_WIDTH*wdt_bnd_rto*15)/2) + (TILE_WIDTH*hand_bnd_rto*num)
                 # tile_get.rect.x = int(DISPLAY_WIDTH/2 + TILE_WIDTH*wdt_bnd_rto*(hand_count/2 + 1))
@@ -343,6 +346,18 @@ class mahjong_board(object):
                 self.player_get_tile(player, refresh=False)
             self.refresh_player_gfx(player)
         self.refresh_paishan_gfx()
+
+    def player_out_card(self, player=0, tilepos=-1):
+        if tilepos < 0 or tilepos >= len(self.player[player]):
+            return -1
+        """syk此处需要进行牌组转移board的处理"""
+        # self.player[player][tilepos]._layer = 0
+        self.player[player][tilepos].rect.x = 0
+        """-------------------------------"""
+        self.player[player].pop(tilepos)
+        self.reorder_player_hand(player=player)
+        self.refresh_player_gfx(player)
+        return 1
 
     def next_step(self):
         if self.game_state == "get_tile":
