@@ -25,10 +25,14 @@ if __name__ == '__main__':
     # Framerate handling
     clock = pygame.time.Clock()
 
+    selected_sprites = []       #被选中的牌
+    Board.game_state = "GET_TILE"
+
     done = False
-    selected_sprites = []
     while not done:
-        Board.player_get_tile(player=0, refresh=False, action=True)
+        if Board.game_state == "GET_TILE":
+            Board.player_get_tile(player=0, refresh=False, action=True)
+            Board.game_state = "WAIT_FOR_OUT_TILE"
         action_finish_flag = False
         while not action_finish_flag:
             for event in pygame.event.get():
@@ -42,9 +46,8 @@ if __name__ == '__main__':
                         if len(selected_sprites) != 0 and selected_sprites[0].tilestate in TILE_STATE_HAND[0]:
                             out_success_flag = Board.player_out_tile(player=0, tilepos=selected_sprites[0].tilepos)
                             # selected_sprites = []
-
                             if(out_success_flag == -1):     #选中了手牌但却没有成功出牌
-                                selected_sprites == 0
+                                selected_sprites = []
                                 continue
                             else:                           #选中了手牌且成功出牌
                                 Board.game_state = "WAIT_FOR_PRO_TILE"
@@ -55,8 +58,8 @@ if __name__ == '__main__':
                     elif Board.game_state == "WAIT_FOR_PRO_TILE":
                         Board.board_get_tile(selected_sprites[0])
                         selected_sprites = []
-
-
+                        Board.game_state = "GET_TILE"
+                        action_finish_flag = True
                 elif event.type == pygame.QUIT:
                     action_finish_flag = True
                     done = True

@@ -26,7 +26,7 @@ TILE_STATE_BOARD = ["BoardTile_0", "BoardTile_0", "BoardTile_0", "BoardTile_0"]
 LAYER_MAX = 136
 LAYER_MIN = 0
 
-GAME_STATE = ["WAIT_FOR_OUT_TILE", "WAIT_FOR_PRO_TILE"]
+GAME_STATE = ["WAIT_FOR_OUT_TILE", "WAIT_FOR_PRO_TILE", "GET_TILE"]
 
 class mahjong_tile(pygame.sprite.DirtySprite):
     def __init__(self, filename, *groups):
@@ -120,7 +120,7 @@ class mahjong_board(object):
         # self.refresh_player_gfx(2)
         # self.refresh_player_gfx(3)
         #
-        self.game_state = "WAIT_FOR_OUT_TILE"
+        self.game_state = None
         self.player_actuel = 0
 
     def generate_paishan(self):
@@ -399,11 +399,12 @@ class mahjong_board(object):
 
         """进行layer换算,令board由上而下排列"""
         board_tile_num = 0
-        row_tile_num = 14       #board每行的麻将数量
+        row_tile_num = 11       #board每行的麻将数量
         for i in range(0, 4):
             board_tile_num += len(self.board[i])
-        row = board_tile_num / 14
-        col = board_tile_num % 14
+        board_tile_num -= 1         #减去自己
+        row = int(board_tile_num / row_tile_num)
+        col = board_tile_num % row_tile_num
         newlayer = LAYER_MAX-row*row_tile_num+col
         self.graphic_system.all_sprites.change_layer(tile, newlayer)
         """configure the pos of tile"""
@@ -412,7 +413,7 @@ class mahjong_board(object):
         board_begin_x = int(DISPLAY_WIDTH/2 - row_tile_num*wdt_bnd_rto*TILE_WIDTH/2)
         board_begin_y = int(DISPLAY_HEIGHT/2 - row_tile_num*wdt_bnd_rto*TILE_WIDTH/2)
         tile.rect.x = col*wdt_bnd_rto*TILE_WIDTH + board_begin_x
-        tile.rect.y = board_begin_y*row
+        tile.rect.y = board_begin_y+row*wdt_bnd_rto*TILE_HEIGHT
 
     def next_step(self):
         if self.game_state == "get_tile":
