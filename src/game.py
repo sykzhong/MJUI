@@ -23,6 +23,10 @@ class mahjong_text(pygame.font.Font):
 TILE_STATE_PAISHAN = ["PaiShan"]
 TILE_STATE_HAND = ["HandTile_0", "HandTile_1", "HandTile_2", "HandTile_3"]
 TILE_STATE_BOARD = ["BoardTile_0", "BoardTile_0", "BoardTile_0", "BoardTile_0"]
+LAYER_MAX = 136
+LAYER_MIN = 0
+
+GAME_STATE = ["WAIT_FOR_OUT_TILE", "WAIT_FOR_PRO_TILE"]
 
 class mahjong_tile(pygame.sprite.DirtySprite):
     def __init__(self, filename, *groups):
@@ -116,7 +120,7 @@ class mahjong_board(object):
         # self.refresh_player_gfx(2)
         # self.refresh_player_gfx(3)
         #
-        self.game_state = None
+        self.game_state = "WAIT_FOR_OUT_TILE"
         self.player_actuel = 0
 
     def generate_paishan(self):
@@ -351,39 +355,64 @@ class mahjong_board(object):
     def player_out_tile(self, player=0, tilepos=-1):
         if tilepos < 0 or tilepos >= len(self.player[player]):
             return -1
+        tile = self.player[player][tilepos]
         """syk此处需要进行牌组转移board的处理"""
-        # self.player[player][tilepos]._layer = 0
-        # self.player[player][tilepos].rect.x = 0
-        self.board_get_tile(player=player, tilepos=tilepos)
+        wdt_bnd_rto = 0.85  # Tile Width Bounding Ratio
+        global DISPLAY_WIDTH, DISPLAY_HEIGHT, TILE_WIDTH, TILE_HEIGHT
+        self.graphic_system.all_sprites.change_layer(tile, LAYER_MAX)
+        if player == 0:
+            tile.rect.x = int(DISPLAY_WIDTH/2 - TILE_WIDTH/2)
+            tile.rect.y = int(DISPLAY_HEIGHT - 3.5*TILE_HEIGHT)
+        elif player == 1:
+            tile.rect.x = int(DISPLAY_WIDTH - 3.5*TILE_HEIGHT)
+            tile.rect.y = int(DISPLAY_HEIGHT / 2)
+        elif player == 2:
+            tile.rect.x = int(DISPLAY_WIDTH/2 - TILE_WIDTH/2)
+            tile.rect.y = int(3.5*TILE_HEIGHT)
+        elif player == 3:
+            tile.rect.x = int(3.5*TILE_HEIGHT)
+            tile.rect.y = int(DISPLAY_HEIGHT / 2)
+        """单击跳过"""
+        # done = False
+        # while not done:
+        #     for event in pygame.event.get():
+        #         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+        #             done = True
+        # self.board_get_tile(player=player, tilepos=tilepos)
+
         """-------------------------------"""
         self.player[player].pop(tilepos)
         self.reorder_player_hand(player=player)
         self.refresh_player_gfx(player)
+        tile.tilestate = TILE_STATE_BOARD[player]       #更新状态
+        self.board[player].append(tile)
         return 1
 
-    def board_get_tile(self, player=0, tilepos=-1):
-        if tilepos < 0 or tilepos >= len(self.player[player]):
-            return -1
-
-        tile = self.player[player][tilepos]
+    def board_get_tile(self, tile):
+        # if tilepos < 0 or tilepos >= len(self.player[player]):
+        #     return -1
+        # tile = self.player[player][tilepos]
         """configure the state of tile"""
-        tile.tilestate = TILE_STATE_BOARD[player]
         tile.vertical = True
         tile.set_visibility(True)
         tile.set_angle(0)
+
+        """进行layer换算,令board由上而下排列"""
         board_tile_num = 0
+        row_tile_num = 14       #board每行的麻将数量
         for i in range(0, 4):
             board_tile_num += len(self.board[i])
-        self.graphic_system.all_sprites.change_layer(tile, board_tile_num)
-
+        row = board_tile_num / 14
+        col = board_tile_num % 14
+        newlayer = LAYER_MAX-row*row_tile_num+col
+        self.graphic_system.all_sprites.change_layer(tile, newlayer)
         """configure the pos of tile"""
-        global DISPLAY_WIDTH, DISPLAY_HEIGHT, TILE_HEIGHT, TILE_WIDTH
         wdt_bnd_rto = 0.85  # Tile Width Bounding Ratio
-        board_begin_x = int(DISPLAY_WIDTH/2 - 15*wdt_bnd_rto*TILE_WIDTH/2)
-        board_begin_y = int(DISPLAY_HEIGHT/2 + 15*wdt_bnd_rto*TILE_WIDTH/2)
-        tile.rect.x = board_tile_num*wdt_bnd_rto*TILE_WIDTH + board_begin_x
-        tile.rect.y = board_begin_y
-        self.board[player].append(tile)
+        global DISPLAY_WIDTH, DISPLAY_HEIGHT, TILE_WIDTH, TILE_HEIGHT
+        board_begin_x = int(DISPLAY_WIDTH/2 - row_tile_num*wdt_bnd_rto*TILE_WIDTH/2)
+        board_begin_y = int(DISPLAY_HEIGHT/2 - row_tile_num*wdt_bnd_rto*TILE_WIDTH/2)
+        tile.rect.x = col*wdt_bnd_rto*TILE_WIDTH + board_begin_x
+        tile.rect.y = board_begin_y*row
 
     def next_step(self):
         if self.game_state == "get_tile":
