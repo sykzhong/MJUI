@@ -104,7 +104,7 @@ class mahjong_board(object):
         self.board = [[], [], [], []]
 
         self.paishan_pos = []               #生成paishan的牌面位置（仅一次）
-        self.player_pos = [[],[],[],[]]     #生成player的牌面位置
+        self.current_player = 0             #记录正在进行操作的玩家号码
 
         self.vacancy_head = -1      #记录空缺位置头
         self.vacancy_tail = 0       #记录空缺位置尾
@@ -290,8 +290,8 @@ class mahjong_board(object):
     def reorder_player_hand(self, player=0):
         self.player[player].sort(key=lambda clef: clef.get_name())
     
-    def player_get_tile(self, player=0, refresh=True, action = False):
-        # D�placer la tile dans la main du joueur
+    def player_get_tile(self, refresh=True, action = False):
+        player = self.current_player
         tile_get = self.paishan.pop(0)
         tile_get.tilestate = TILE_STATE_HAND[player]
         self.vacancy_tail += 1
@@ -348,7 +348,8 @@ class mahjong_board(object):
     def init_player_tile(self):
         for player in range(4):
             for tile in range(13):
-                self.player_get_tile(player, refresh=False)
+                self.current_player = player        #表示进行抽牌的玩家
+                self.player_get_tile(refresh=False)
             self.refresh_player_gfx(player)
         self.refresh_paishan_gfx()
 
@@ -427,3 +428,18 @@ class mahjong_board(object):
             # On d�bute ou on est perdu
             self.player_actuel = 0
             self.game_state = "get_tile"
+
+    def player_out_strategy(self, player=0, Auto=True):
+        if Auto == True:
+            hand_tile_num = len(self.player[player])
+            out_tile_pos = random.randint(0, hand_tile_num-1)
+            return out_tile_pos
+        else:
+            return 0
+
+    def player_change(self, newindex=-1):
+        if newindex == -1:      #nexindex=-1表示正常轮换
+            self.current_player = (self.current_player+1)%4
+        else:
+            self.current_player = newindex
+
